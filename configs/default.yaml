@@ -1,0 +1,24 @@
+model:
+  weights: yolo11n.pt
+  confidence: 0.35
+  classes: [0, 1, 2, 3, 5, 7]
+
+tracking:
+  history_length: 12
+  velocity_window: 5
+
+prediction:
+  horizon_frames: 18
+
+risk:
+  warning_threshold: 70
+  critical_threshold: 85
+  center_weight: 35
+  motion_weight: 30
+  proximity_weight: 35
+
+output:
+  display: true
+  save_video: false
+  save_log: true
+  directory: outputs
