@@ -27,6 +27,7 @@ class SafetyPipeline:
     def run(self, source):
         outputDir = Path(self.config["output"]["directory"])
         outputDir.mkdir(parents=True, exist_ok=True)
+
         logFile = None
         if self.config["output"]["save_log"]:
             logFile = open(outputDir / "detections.jsonl", "w", encoding="utf-8")
@@ -36,14 +37,16 @@ class SafetyPipeline:
             raise RuntimeError(f"Could not open source: {source}")
 
         frameIndex = 0
+
         try:
             while True:
                 ok, frame = capture.read()
-                timestamp = time.monotonic()
                 if not ok:
-                    timestamp = time.monotonic()
                     break
+
+                timestamp = time.monotonic()
                 detections = self.detector.track(frame)
+
                 for d in detections:
                     self.motion.update(d, timestamp)
                     self.predictor.predict(d)
@@ -63,13 +66,17 @@ class SafetyPipeline:
                         }) + "\n")
 
                 shown = self.renderer.draw(frame, detections, self.risk)
+
                 if self.config["output"]["display"]:
                     cv2.imshow("TrajectoryGuard", shown)
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
+
                 frameIndex += 1
         finally:
             capture.release()
+
             if logFile:
                 logFile.close()
+
             cv2.destroyAllWindows()
