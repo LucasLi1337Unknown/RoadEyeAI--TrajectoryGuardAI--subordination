@@ -8,7 +8,7 @@ tracking:
   velocity_window: 5
 
 prediction:
-  horizon_frames: 18
+  horizon_seconds: 1.0
 
 risk:
   warning_threshold: 70
