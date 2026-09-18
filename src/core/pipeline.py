@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import time
 import cv2
 import yaml
 from src.detection.yolo_detector import YoloDetector
@@ -19,7 +20,7 @@ class SafetyPipeline:
 
         self.detector = YoloDetector(model["weights"], model["confidence"], model["classes"])
         self.motion = MotionEstimator(tracking["history_length"], tracking["velocity_window"])
-        self.predictor = ConstantVelocityPredictor(prediction["horizon_frames"])
+        self.predictor = ConstantVelocityPredictor(prediction["horizon_seconds"])
         self.risk = BaselineRiskEngine(self.config["risk"])
         self.renderer = Renderer()
 
@@ -38,11 +39,13 @@ class SafetyPipeline:
         try:
             while True:
                 ok, frame = capture.read()
+                timestamp = time.monotonic()
                 if not ok:
+                    timestamp = time.monotonic()
                     break
                 detections = self.detector.track(frame)
                 for d in detections:
-                    self.motion.update(d)
+                    self.motion.update(d, timestamp)
                     self.predictor.predict(d)
                     self.risk.evaluate(d, frame.shape)
 
